@@ -57,8 +57,7 @@ input_container = st.container()
 response_container = st.container()
 
 def get_text():
-    question = st.text_input("You : ", "", key="input")
-    return question
+    return st.text_input("You : ", "", key="input")
 
 with input_container:
     user_input = get_text()
@@ -72,9 +71,7 @@ def generate_response(prompt):
         agent_type=AgentType.OPENAI_FUNCTIONS,
     )
 
-    response = agent.run(prompt)
-
-    return response
+    return agent.run(prompt)
 
 ## Conditional display of AI generated responses as a function of user provided prompts
 with response_container:
@@ -83,14 +80,20 @@ with response_container:
             response = generate_response(user_input)
         except:
             response = "Sorry I don't have the answer for that 😞"
-            
+
         st.session_state.past.append(user_input)
         st.session_state.generated.append(response)
-        
+
     if st.session_state['generated']:
         for i in range(len(st.session_state['generated'])-1, -1, -1):
             message(st.session_state["generated"][i], key=str(i), avatar_style="bottts-neutral", seed=90)
-            message(st.session_state['past'][i], is_user=True, key=str(i) + '_user', avatar_style="avataaars-neutral", seed=10)
+            message(
+                st.session_state['past'][i],
+                is_user=True,
+                key=f'{str(i)}_user',
+                avatar_style="avataaars-neutral",
+                seed=10,
+            )
 
 hide_streamlit_style = """
             <style>

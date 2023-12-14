@@ -49,99 +49,99 @@ if sheet:
         st.info("Please enter a valid Google Sheet url (https://docs.google.com/spreadsheets/d/xxxxxxx/edit#gid=0)")
 
 if data:
-        previous_row = df.iloc[-2]
-        
-        # Select the last row
-        last_row = df.iloc[-1]
+    previous_row = df.iloc[-2]
 
-        douar_name = last_row.douar_name
-        st.markdown(f"## 📍 {douar_name}")
+    # Select the last row
+    last_row = df.iloc[-1]
 
-        population = int(last_row.population)
-        injuries = int(last_row.injuries)
-        deaths = int(last_row.deaths)
-        healthcare_personel = int(last_row.healthcare_personel)
+    douar_name = last_row.douar_name
+    st.markdown(f"## 📍 {douar_name}")
 
-        # Calculate the difference in tents from the previous value
-        population_difference = population - int(previous_row.population)
-        injuries_difference = injuries - int(previous_row.injuries)
-        deaths_difference = deaths - int(previous_row.deaths)
-        healthcare_difference = healthcare_personel - int(previous_row.healthcare_personel)
+    population = int(last_row.population)
+    injuries = int(last_row.injuries)
+    deaths = int(last_row.deaths)
+    healthcare_personel = int(last_row.healthcare_personel)
 
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("👨‍👩‍👧‍👧 Population", population, population_difference)
-        col2.metric("🤕 Injuries", injuries, injuries_difference)
-        col3.metric("💀 Deaths", deaths, deaths_difference)
-        col4.metric("👨‍⚕️ Healthcare Personel", healthcare_personel, healthcare_difference)
+    # Calculate the difference in tents from the previous value
+    population_difference = population - int(previous_row.population)
+    injuries_difference = injuries - int(previous_row.injuries)
+    deaths_difference = deaths - int(previous_row.deaths)
+    healthcare_difference = healthcare_personel - int(previous_row.healthcare_personel)
 
-        tents = int(last_row.tents)
-        medecine = int(last_row.medecine_in_percentage)
-        food = int(last_row.food_in_percentage)
-        water = int(last_row.water)
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("👨‍👩‍👧‍👧 Population", population, population_difference)
+    col2.metric("🤕 Injuries", injuries, injuries_difference)
+    col3.metric("💀 Deaths", deaths, deaths_difference)
+    col4.metric("👨‍⚕️ Healthcare Personel", healthcare_personel, healthcare_difference)
 
-        # Calculate the difference in tents from the previous value
-        tents_difference = tents - int(previous_row.tents)
-        medecine_difference = medecine - int(previous_row.medecine_in_percentage)
-        food_difference = food - int(previous_row.food_in_percentage)
-        water_difference = water - int(previous_row.water)
+    tents = int(last_row.tents)
+    medecine = int(last_row.medecine_in_percentage)
+    food = int(last_row.food_in_percentage)
+    water = int(last_row.water)
 
-        st.markdown("#")
+    # Calculate the difference in tents from the previous value
+    tents_difference = tents - int(previous_row.tents)
+    medecine_difference = medecine - int(previous_row.medecine_in_percentage)
+    food_difference = food - int(previous_row.food_in_percentage)
+    water_difference = water - int(previous_row.water)
 
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("🏕️ Tents (Unit)", tents, tents_difference)
-        col2.metric("⚕️ Medecine (%)", medecine, medecine_difference)
-        col3.metric("🍽️ Food (%)", food, food_difference)
-        col4.metric("💧 Water (Liter)", water, water_difference)
+    st.markdown("#")
 
-        douars_data = pd.read_csv("streamlit/data/KhaimaAI - AllDouars.csv") # './data/KhaimaAI - AllDouars.csv' for local run 
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("🏕️ Tents (Unit)", tents, tents_difference)
+    col2.metric("⚕️ Medecine (%)", medecine, medecine_difference)
+    col3.metric("🍽️ Food (%)", food, food_difference)
+    col4.metric("💧 Water (Liter)", water, water_difference)
 
-        coordinates = last_row.lat_long.strip('()')
+    douars_data = pd.read_csv("streamlit/data/KhaimaAI - AllDouars.csv") # './data/KhaimaAI - AllDouars.csv' for local run 
+
+    coordinates = last_row.lat_long.strip('()')
+    lat_str, lon_str = coordinates.split(', ')
+    lat = float(lat_str)
+    lon = float(lon_str)
+
+    st.markdown("#")
+
+    # Create a Folium map
+    m = folium.Map(location=[lat, lon], zoom_start=10)
+
+    # Iterate through each row in the DataFrame
+    for index, row in douars_data.iterrows():
+        # Get the values for the current row
+        douar_name = row['douar_name']
+        lat_long = row['lat_long']
+        population = row['population']
+        injuries = row['injuries']
+        deaths = row['deaths']
+        healthcare_personel = row['healthcare_personel']
+        tents = row['tents']
+        medecine = row['medecine_in_percentage']
+        food = row['food_in_percentage']
+        water = row['water']
+
+        # Extract latitude and longitude
+        coordinates = lat_long.strip('()')
+
         lat_str, lon_str = coordinates.split(', ')
         lat = float(lat_str)
         lon = float(lon_str)
-        
-        st.markdown("#")
 
-        # Create a Folium map
-        m = folium.Map(location=[lat, lon], zoom_start=10)
+        # Determine the marker color and icon based on food and medicine values
+        if food > 100 and medecine > 100:
+            # Green marker with a "thumbs-up" icon for values over 100%
+            icon = folium.Icon(color="green", icon="thumbs-up")
+        elif food > 80 and medecine > 80:
+            # Blue marker with a "check" icon for values over 80%
+            icon = folium.Icon(color="blue", icon="check")
+        elif food > 50 and medecine > 50:
+            # Yellow marker with an "exclamation" icon for values over 50%
+            icon = folium.Icon(color="orange")
+        else:
+            # Red marker with a "warning" icon for values under 50%
+            icon = folium.Icon(color="red", icon="cutlery")
 
-        # Iterate through each row in the DataFrame
-        for index, row in douars_data.iterrows():
-            # Get the values for the current row
-            douar_name = row['douar_name']
-            lat_long = row['lat_long']
-            population = row['population']
-            injuries = row['injuries']
-            deaths = row['deaths']
-            healthcare_personel = row['healthcare_personel']
-            tents = row['tents']
-            medecine = row['medecine_in_percentage']
-            food = row['food_in_percentage']
-            water = row['water']
-                
-            # Extract latitude and longitude
-            coordinates = lat_long.strip('()')
-
-            lat_str, lon_str = coordinates.split(', ')
-            lat = float(lat_str)
-            lon = float(lon_str)
-
-            # Determine the marker color and icon based on food and medicine values
-            if food > 100 and medecine > 100:
-                # Green marker with a "thumbs-up" icon for values over 100%
-                icon = folium.Icon(color="green", icon="thumbs-up")
-            elif food > 80 and medecine > 80:
-                # Blue marker with a "check" icon for values over 80%
-                icon = folium.Icon(color="blue", icon="check")
-            elif food > 50 and medecine > 50:
-                # Yellow marker with an "exclamation" icon for values over 50%
-                icon = folium.Icon(color="orange")
-            else:
-                # Red marker with a "warning" icon for values under 50%
-                icon = folium.Icon(color="red", icon="cutlery")
-
-            # Create a tooltip with HTML line breaks
-            tooltip_html = f"""<b>📍 Douar name:</b> {douar_name}<br>
+        # Create a tooltip with HTML line breaks
+        tooltip_html = f"""<b>📍 Douar name:</b> {douar_name}<br>
                             <b>👨‍👩‍👧‍👧 Population:</b> {population}<br>
                             <b>🤕 Injuries:</b> {injuries}<br>
                             <b>💀 Deaths:</b> {deaths}<br>
@@ -151,73 +151,70 @@ if data:
                             <b>🍽️ Food (%):</b> {food}<br>
                             <b>💧 Water (Liter):</b> {water}<br>
                             <b>🗺️ Coordinates:</b> {coordinates}"""
-                
-            # Create a marker and add it to the map
-            folium.Marker(
-                [lat, lon], 
-                popup=douar_name, 
-                tooltip=tooltip_html,
-                icon=icon
-            ).add_to(m)
-                
-        # Display the map in Streamlit
-        st_folium(m, width=1500)   
+
+        # Create a marker and add it to the map
+        folium.Marker(
+            [lat, lon], 
+            popup=douar_name, 
+            tooltip=tooltip_html,
+            icon=icon
+        ).add_to(m)
+
+    # Display the map in Streamlit
+    st_folium(m, width=1500)   
 
 
-        #### Visualizations ####
-        data = df
+    #### Visualizations ####
+    data = df
 
-        # Convert the 'date' column to datetime
-        data['date'] = pd.to_datetime(data['date'], format='%d/%m/%Y')
+    # Convert the 'date' column to datetime
+    data['date'] = pd.to_datetime(data['date'], format='%d/%m/%Y')
 
-        col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
-        with col1:
-            # Line Chart for Population Over Time
-            st.subheader("👨‍👩‍👧‍👧 Population In The Camp Over Time")
-            st.line_chart(data.set_index('date')['population'], height=200)
+    with col1:
+        # Line Chart for Population Over Time
+        st.subheader("👨‍👩‍👧‍👧 Population In The Camp Over Time")
+        st.line_chart(data.set_index('date')['population'], height=200)
 
-            st.markdown("#")
+        st.markdown("#")
 
-            # Line Chart for Food and Medicine Percentage Over Time
-            st.subheader("🍽️ Food and ⚕️ Medicine Percentage Over Time")
-            st.line_chart(data.set_index('date')[['food_in_percentage', 'medecine_in_percentage']])
-            
-            st.markdown("#")
+        # Line Chart for Food and Medicine Percentage Over Time
+        st.subheader("🍽️ Food and ⚕️ Medicine Percentage Over Time")
+        st.line_chart(data.set_index('date')[['food_in_percentage', 'medecine_in_percentage']])
 
-            #Multi-line chart
-            st.subheader("💀 Deaths and 🤕 Injuries In The Camp Over Time")
-            st.area_chart(
-                    data,
-                    x='date',
-                    y=['injuries', 'deaths']
-            )
+        st.markdown("#")
 
-        with col2:
-            # Bar Chart for Tents Over Time
-            st.subheader("🏕️ Tents In The Camp Over Time")
-            st.line_chart(data.set_index('date')['tents'], height=200, color="#d6281c")
+        #Multi-line chart
+        st.subheader("💀 Deaths and 🤕 Injuries In The Camp Over Time")
+        st.area_chart(
+                data,
+                x='date',
+                y=['injuries', 'deaths']
+        )
 
-            st.markdown("#")
+    with col2:
+        # Bar Chart for Tents Over Time
+        st.subheader("🏕️ Tents In The Camp Over Time")
+        st.line_chart(data.set_index('date')['tents'], height=200, color="#d6281c")
 
-            # Bar Chart for Water Availability Over Time
-            st.subheader("💧 Water Availability Over Time")
-            st.bar_chart(data.set_index('date')['water'])
+        st.markdown("#")
 
-            st.markdown("#")
+        # Bar Chart for Water Availability Over Time
+        st.subheader("💧 Water Availability Over Time")
+        st.bar_chart(data.set_index('date')['water'])
 
-            #Multi-line chart
-            st.subheader("👨‍⚕️ Healthcare Personel In The Camp Over Time")
-            st.line_chart(
-                    data,
-                    x='date',
-                    y=['healthcare_personel'],
-                    color="#eb4034"
-            )
+        st.markdown("#")
 
-else:
-        pass
-    
+        #Multi-line chart
+        st.subheader("👨‍⚕️ Healthcare Personel In The Camp Over Time")
+        st.line_chart(
+                data,
+                x='date',
+                y=['healthcare_personel'],
+                color="#eb4034"
+        )
+
 hide_streamlit_style = """
             <style>
             #MainMenu {visibility: hidden;}
